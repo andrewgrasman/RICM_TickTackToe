@@ -50,15 +50,16 @@ TODO: Check if code is needed needed or change to pi
 */
 
 enum led{off,red,green,both}ledArr[]={0,0,0,0,0,0,0,0,0};
-int board[][]={
-	{1,2,3,4,5,6,7,8,9},
-	{10,11,12,13,14,15,16,17,18},
-	{19,20,21,22,23,24}
-	};
-bool oldTouchState[3][];
-enum player{green,red}
-#define START_PLAYER 0;
-enum player curPlayer=START_PLAYER;
+int *board[]={
+	(int[]){1,2,3,4,5,6,7,8,9},
+	(int[]){10,11,12,13,14,15,16,17,18},
+	(int[]){19,20,21,22,23,24}};
+bool *oldTouchState[]={
+  (bool[]){false,false,false,false,false,false,false,false,false},
+  (bool[]){false,false,false,false,false,false,false,false,false},
+  (bool[]){false,false,false,false,false,false}};
+#define START_PLAYER 1;//green/side with extra toutchpads
+int curPlayer=START_PLAYER;
 uint8_t CAP_I2C_ADDR[]={0x29,0x2A,0x2B,0x2C};
 Adafruit_CAP1188 cap[sizeof(CAP_I2C_ADDR)];
 
@@ -72,7 +73,7 @@ void setup(){
 	for(int i=0;i<sizeof(cap);i++){
 		if(!cap[i].begin())
 		Serial.println("CAP1188 at "+CAP_I2C_ADDR[i]+" not found");
-			else Serial.println("CAP1188 at 0"+CAP_I2C_ADDR[i]+"x2A found!");
+			else Serial.println("CAP1188 at 0"+CAP_I2C_ADDR[i]+" found!");
 		cap[i].writeRegister(CAP1188_LEDLINK,0x00);//turn of the led linking with the touchpads
 		}
 }
@@ -84,20 +85,23 @@ void loop(){
 	delay(50);
 }
 
-void touchHandler(bool state[24]){
+void touchHandler(bool *state[]){
 	for(int b=0;b<sizeof(board);b++)
-		for(int c=0;)c<sizeof(board[b];c++){
+		for(int c=0;c<sizeof(board[b]);c++){
 			if(state[b*sizeof(board[0])+c] && !oldTouchState[b][c])
 			if(b<2)play(b,c);
 			else utility(c);
 		}
 }
 
-bool* checkToutches(){
-	bool result[8(sizeof(cap)-1)];
+bool **checkToutches(){
+	bool *result[]={
+  (bool[]){false,false,false,false,false,false,false,false,false},
+  (bool[]){false,false,false,false,false,false,false,false,false},
+  (bool[]){false,false,false,false,false,false}};
 	for(int a=0;a<sizeof(cap)-1;a++)//fourth cap1188 has no touchpads
 	for(int b=0;b<8;b++)//number of toutchpads
-	result[a][b]=cap[a];
+	result[a][b]=((uint8_t)(cap[a].touched())) & (1<<i);//TODO: check if this gets the touch itself from cap
 	return result;
 }
 
@@ -108,9 +112,9 @@ void play(int player, int button){
 
 void utility(int button){
 	if(button==0)
-	reset()
+	reset();
 	if(button>0)
-	Serial.println("NOT IMPLEMENTED BUTTON IN UTILITY")
+	Serial.println("NOT IMPLEMENTED BUTTON IN UTILITY");
 }
 
 void updateLeds(){
@@ -119,14 +123,14 @@ void updateLeds(){
 	for(int i=0;i<sizeof(ledArr);i++)
 	if(i<8){//8 leds per cap1188
 		result*=2;
-		result+ledArr[i]
+		result+ledArr[i];
 	} else
-	cap[i/8].writeRegister(0x74,result)//only uses the first two cap1188s
+	cap[i/8].writeRegister(0x74,result);//only uses the first two cap1188s
 }
 
-reset(){
+void reset(){
 	clearLeds();
-	curPlayer=green;
+	curPlayer=START_PLAYER;
 }
 
 void clearLeds(){
