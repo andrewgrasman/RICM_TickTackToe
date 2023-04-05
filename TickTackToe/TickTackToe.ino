@@ -49,7 +49,7 @@ TODO: Check if code is needed needed or change to pi
 //Adafruit_CAP1188 cap = Adafruit_CAP1188(CAP1188_CLK, CAP1188_MISO, CAP1188_MOSI, CAP1188_CS, CAP1188_RESET);
 */
 
-enum led{off,red,green,both}ledArr[]={0,0,0,0,0,0,0,0,0};
+enum led{off,red,green,both} ledArr[]={off,off,off,off,off,off,off,off,off};
 int *board[]={
 	(int[]){1,2,3,4,5,6,7,8,9},
 	(int[]){10,11,12,13,14,15,16,17,18},
@@ -65,19 +65,34 @@ Adafruit_CAP1188 cap[sizeof(CAP_I2C_ADDR)];
 
 void setup(){
 	Serial.begin(9600);
+  Serial.println(sizeof(CAP_I2C_ADDR),DEC);
+  Serial.println(sizeof(cap),DEC);
+	for(int i=0; i<sizeof(cap);i++){
+  Serial.println(cap[i]);}
 	Serial.println("CAP1188 test!");
 	// Initialize the sensor, if using i2c you can pass in the i2c address
 	for(int i=0;i<sizeof(cap);i++){
 		cap[i]=Adafruit_CAP1188(CAP_I2C_ADDR[i]);
+    Serial.println("Trying cap#: "+i);
 	}
 	for(int i=0;i<sizeof(cap);i++){
-		if(!cap[i].begin())
-		Serial.println("CAP1188 at "+CAP_I2C_ADDR[i]+" not found");
-			else Serial.println("CAP1188 at 0"+CAP_I2C_ADDR[i]+" found!");
-		cap[i].writeRegister(CAP1188_LEDLINK,0x00);//turn of the led linking with the touchpads
+		if(!cap[i].begin()){
+			Serial.print("CAP1188 at ");
+			Serial.print(CAP_I2C_ADDR[i]);
+			Serial.println(" not found");
+		}
+			else 
+			Serial.print("CAP1188 at 0");
+			Serial.print(CAP_I2C_ADDR[i]);
+			Serial.println(" found!");
+		cap[i].writeRegister(CAP1188_LEDLINK,0x00);//turn off the led linking with the touchpads
 		}
 }
 
+void loop(){
+
+}
+/* 
 void loop(){
 	touchHandler(checkToutches());
 	curPlayer=(curPlayer+1)%2;//switch board[0]current player
@@ -101,13 +116,13 @@ bool **checkToutches(){
   (bool[]){false,false,false,false,false,false}};
 	for(int a=0;a<sizeof(cap)-1;a++)//fourth cap1188 has no touchpads
 	for(int b=0;b<8;b++)//number of toutchpads
-	result[a][b]=((uint8_t)(cap[a].touched())) & (1<<i);//TODO: check if this gets the touch itself from cap
+	result[a][b]=((uint8_t)(cap[a].touched())) & (1<<b);//TODO: check if this gets the touch itself from cap
 	return result;
 }
 
 void play(int player, int button){
 	if(ledArr[button]==0 && player==curPlayer)
-	ledArr[button]=player+1;
+	ledArr[button]=(led)(player+1);
 }
 
 void utility(int button){
@@ -138,3 +153,4 @@ void clearLeds(){
 		ledArr[i]=off;
 	}
 }
+ */
